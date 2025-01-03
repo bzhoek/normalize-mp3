@@ -67,7 +67,12 @@ function getLoudnessJson(file) {
   })
 }
 
+const target = -20;
 getLoudnessJson(filePath)
   .then((json) => {
-    writeToFile(filePath, -24, json)
+    const delta = Math.abs(target - json.input_i);
+    if (delta > 8.0) {
+      console.log(delta, json);
+      writeToFile(filePath, target, json);
+    }
   });
