@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const {exec} = require('child_process');
 
-const filePath = process.argv[2]
+const folderPath = process.argv[2]
 
 function writeToFile(filePath, loudness, json) {
   const dirname = path.dirname(filePath);
@@ -68,11 +68,27 @@ function getLoudnessJson(file) {
 }
 
 const target = -20;
-getLoudnessJson(filePath)
-  .then((json) => {
-    const delta = Math.abs(target - json.input_i);
-    if (delta > 8.0) {
-      console.log(delta, json);
-      writeToFile(filePath, target, json);
+
+async function processFiles(folderPath) {
+  const files = fs.readdirSync(folderPath)
+    .filter(file => file.endsWith('.mp3'));
+
+  for (const file of files) {
+    const filePath = path.join(folderPath, file);
+    // console.log(filePath)
+    try {
+      await getLoudnessJson(filePath)
+        .then((json) => {
+          const delta = Math.abs(target - json.input_i);
+          if (delta > 8.0) {
+            console.log(filePath, delta, json);
+            writeToFile(filePath, target, json);
+          }
+        });
+    } catch (err) {
+      console.error(err)
     }
-  });
+  }
+}
+
+processFiles(folderPath);
